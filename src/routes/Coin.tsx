@@ -11,7 +11,7 @@ import {
 } from "react-router-dom";
 import styled from "styled-components";
 import { fetchCoinInfo, fetchCoinTickers } from "../api";
-import { NavigationContainer, NavigationIcon } from "./Coins";
+import { NavigationIcon } from "./Coins";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { isDarkAtom } from "../atoms";
 
@@ -23,18 +23,28 @@ const Container = styled.div`
 const Header = styled.header`
   height: 15vh;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
 `;
 
 const Title = styled.h1`
   font-size: 48px;
+  font-weight: 400;
   color: ${(props) => props.theme.accentColor};
   text-align: center;
 `;
 const Loader = styled.span`
   text-align: center;
   display: block;
+`;
+
+const NavigationContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  width: 90%;
+  position: fixed;
+  top: 30px;
+  left: 30px;
 `;
 
 const Overview = styled.div`
@@ -235,7 +245,7 @@ const Coin = () => {
           <Outlet
             context={
               chartMatch
-                ? { coinId }
+                ? { coinId, name: infoData?.name }
                 : priceMatch
                 ? { data: tickersData?.quotes.USD }
                 : null

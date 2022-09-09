@@ -6,6 +6,7 @@ import { useRecoilValue } from "recoil";
 import { isDarkAtom } from "../atoms";
 interface ChartProps {
   coinId: string;
+  name: string;
 }
 interface IData {
   time_open: number;
@@ -18,12 +19,24 @@ interface IData {
   market_cap: number;
 }
 function Chart() {
-  const { coinId } = useOutletContext<ChartProps>();
+  const { coinId, name } = useOutletContext<ChartProps>();
   const { isLoading, data } = useQuery<IData[]>(
     ["price in chart", coinId],
     () => fetchCoinHistory(coinId)
   );
   const isDark = useRecoilValue(isDarkAtom);
+  const exceptData = data ?? [];
+  const chartData = exceptData?.map((i) => {
+    return {
+      x: i.time_close,
+      y: [
+        Number(i.open).toFixed(2),
+        Number(i.high).toFixed(2),
+        Number(i.low).toFixed(2),
+        Number(i.close).toFixed(2),
+      ],
+    };
+  });
 
   return (
     <div>
@@ -31,53 +44,51 @@ function Chart() {
         "Loading chart..."
       ) : (
         <ApexChart
-          type="line"
+          type="candlestick"
+          series={[
+            {
+              data: chartData,
+            },
+          ]}
           options={{
             chart: {
-              height: 300,
-              width: 500,
+              type: "candlestick",
+              height: 350,
+              background: "transparent",
               toolbar: {
                 show: false,
               },
-              background: "transparent",
+            },
+            title: {
+              text: `${name} chart`,
+              align: "center",
+              style: {
+                fontSize: "17px",
+              },
+            },
+            xaxis: {
+              type: "datetime",
+            },
+            yaxis: {
+              tooltip: {
+                enabled: true,
+              },
+            },
+            plotOptions: {
+              candlestick: {
+                colors: {
+                  upward: "#ff5e57",
+                  downward: "#0fbcf9",
+                },
+                wick: {
+                  useFillColor: true,
+                },
+              },
             },
             theme: {
               mode: isDark ? "dark" : "light",
             },
-            stroke: {
-              curve: "smooth",
-              width: 4,
-            },
-            grid: { show: false },
-            yaxis: { show: false },
-            xaxis: {
-              labels: { show: false },
-              axisTicks: { show: false },
-              axisBorder: { show: false },
-              categories: data?.slice(0, 14).map((price) => price.time_close),
-              type: "datetime",
-            },
-            fill: {
-              type: "gradient",
-              gradient: { gradientToColors: ["#05c46b"], stops: [0, 100] },
-            },
-            colors: ["#0fbcf9"],
-            tooltip: {
-              y: {
-                formatter: (value) => `$ ${value.toFixed(2)}`,
-              },
-              x: {
-                format: "dd MMM",
-              },
-            },
           }}
-          series={[
-            {
-              name: "closing price",
-              data:
-                data?.slice(0, 14).map((price) => Number(price.close)) ?? [],
-            },
-          ]}
         />
       )}
     </div>
